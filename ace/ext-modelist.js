@@ -153,6 +153,7 @@ var supportedModes = {
     XML:         ["xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"],
     XQuery:      ["xq"],
     YAML:        ["yaml|yml"]
+    UBF:        ["ubf"]
 };
 
 var nameOverrides = {
@@ -184,4 +185,3 @@ module.exports = {
                 (function() {
                     window.require(["ace/ext/modelist"], function() {});
                 })();
-            

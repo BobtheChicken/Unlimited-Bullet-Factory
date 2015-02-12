@@ -49,6 +49,8 @@
         </td>
         <td width="50%" height="100%">
             <button type="button" onclick="refresh()">Refresh</button>
+            <button type="button" onclick="save()">Save</button>
+            <button type="button" onclick="load()">Load</button>
         </td>
     </tr>
 </table>
@@ -61,7 +63,7 @@
 
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/javascript");
+    // editor.getSession().setMode("ace/mode/ubf");
    //  editor.getSession().on('change', function () {
    //     textarea.val(editor.getSession().getValue());
    // });

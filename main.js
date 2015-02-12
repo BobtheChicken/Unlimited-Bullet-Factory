@@ -10,12 +10,19 @@
  */
 enchant();
 
+var testbullet;
+var game;
+var scene;
+
+var code;
+
 window.onload = function(){
 
-    var game = new Game(1024, 1024);
+    game = new Game(1024, 1024);
+    game.fps = 30;
     game.scale = 0.5;
     game.preload('images/default.png');
-    var scene;
+    // scene;
 
     game.onload = function()
     {
@@ -23,7 +30,9 @@ window.onload = function(){
         scene.backgroundColor = "#C8F7C5";
         game.pushScene(scene);
 
-        var bullet = new Bullet();
+        testbullet = new Bullet();
+
+        refresh();
 
     };
 
@@ -36,8 +45,11 @@ window.onload = function(){
             this.scaleX = 1;
             this.scaleY = 1;
 
+            this.x = 512;
+            this.y = 512;
+
             this.angle = 0;
-            this.speed = 0;
+            this.speed = 1;
 
             this.scriptname = "regular";
         },
@@ -61,20 +73,89 @@ window.onload = function(){
 
 function refresh()
 {
+    scene.removeChild(testbullet);
+    testbullet = new Bullet();
     // console.log();
     start();
 }
 
 function start()
 {
+
+    var bullet = testbullet;
+
     var allines = editor.getSession().getDocument().getAllLines();
-    for(var i = 0; i < allines.length; i++)
+
+    delayedcall(allines,bullet,0);
+}
+
+function delayedcall(allines,bullet,index)
+{
+    if(index < allines.length)
     {
-        var line = allines[i];
+        var delay = executeline(allines[index],bullet);
+
+        scene.tl.delay(delay).then(function(){
+           // Processing after one second
+           console.log("lel");
+           delayedcall(allines,bullet,index+1)
+       });
+    }
+}
+
+
+function executeline(line,bullet)
+{
+    // var line = allines[i];
         var parts = line.split(" ");
         parts.clean("");
-        console.log(parts);
-    }
+
+        var delay = 0;
+        // console.log(parts);
+        if(parts[0] == "set")
+        {
+            if(parts[1] == "rotation")
+            {
+                bullet.angle = parts[2];
+            }
+            if(parts[1] == "speed")
+            {
+                bullet.speed = parts[2];
+            }
+            if(parts[1] == "x")
+            {
+                bullet.x = parts[2];
+            }
+            if(parts[1] == "y")
+            {
+                bullet.y = parts[2];
+            }
+        }
+        if(parts[0] == "delay")
+        {
+            delay = parts[1];
+        }
+        if(parts[0] == "add")
+        {
+            if(parts[1] == "rotation")
+            {
+                bullet.angle += parts[2];
+            }
+            if(parts[1] == "speed")
+            {
+                bullet.speed += parts[2];
+            }
+            if(parts[1] == "x")
+            {
+                bullet.x += parts[2];
+            }
+            if(parts[1] == "y")
+            {
+                bullet.y += parts[2];
+            }
+        }
+
+        return delay;
 }
 
 Array.prototype.clean = function(deleteValue) {
@@ -89,7 +170,17 @@ Array.prototype.clean = function(deleteValue) {
 
 
 
+function save()
+{
+    code = editor.getSession().getDocument().getValue();
+    console.log("value is " + code);
+}
 
+function load()
+{
+    console.log(code);
+    editor.getSession().getDocument().setValue(code);
+}
 
 
 
