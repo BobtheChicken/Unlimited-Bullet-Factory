@@ -36,11 +36,7 @@
             <div id="enchant-stage"></div>
         </td>
         <td width="50%" height="100%">
-            <div id="editor" style="height: 512px; width: 100%">some text
-                function foo(items) {
-                var x = "All this is syntax highlighted";
-                return x;
-                }
+            <div id="editor" style="height: 512px; width: 100%">set speed 10
             </div>
         </td>
     </tr>
@@ -50,7 +46,9 @@
         <td width="50%" height="100%">
             <button type="button" onclick="refresh()">Refresh</button>
             <button type="button" onclick="save()">Save</button>
-            <button type="button" onclick="load()">Load</button>
+            <input id="filename">
+            <br>
+            <span id="loading"></span>
         </td>
     </tr>
 </table>

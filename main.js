@@ -10,11 +10,13 @@
  */
 enchant();
 
-var testbullet;
+var boss;
 var game;
 var scene;
 
-var code;
+var allbullets = [];
+
+var code = {};
 
 window.onload = function(){
 
@@ -30,9 +32,11 @@ window.onload = function(){
         scene.backgroundColor = "#C8F7C5";
         game.pushScene(scene);
 
-        testbullet = new Bullet();
+        startup();
 
-        refresh();
+        // testbullet = new Bullet("main");
+
+        // refresh();
 
     };
 
@@ -52,6 +56,9 @@ window.onload = function(){
             this.speed = 1;
 
             this.scriptname = "regular";
+            allbullets.push(this);
+
+
         },
         onenterframe:function()
         { // enterframe event listener
@@ -73,20 +80,95 @@ window.onload = function(){
 
 function refresh()
 {
-    scene.removeChild(testbullet);
-    testbullet = new Bullet();
+    for(var i = 0; i < allbullets.length; i++)
+    {
+        scene.removeChild(allbullets[i]);
+    }
+    scene.removeChild(boss);
+    boss = makeBullet("main");
     // console.log();
-    start();
+    // start();
 }
 
-function start()
+
+function loopcreation(allines)
 {
+    for(var i = 0; i < allines.length; i++)
+    {
+        var parts = allines[i].split(" ");
+        if(parts[0] == "loop")
+        {
+            var looped = [];
+            var endreached = false;
+            var counter = i;
+            allines.splice(i,1);
+            while(endreached == false && counter < 10)
+            {
+                if(allines[counter] == "endloop")
+                {
+                    endreached = true;
+                    allines.splice(counter,1);
+                }
+                else
+                {
+                    looped.push(allines[counter]);
+                    allines.splice(counter,1);
+                    counter -= 1;
+                }
 
-    var bullet = testbullet;
+                counter++;
+            }
+            // console.log(looped);
+            for(var k = 0; k < parts[1]; k++)
+            {
+                var adjusted = [];
+                for(var j = 0; j < looped.length; j++)
+                {
+                    var theline = looped[j];
+                    var adparts = theline.split(" ");
 
-    var allines = editor.getSession().getDocument().getAllLines();
+                    var newline = "";
+
+
+                    for(var m = 0; m < adparts.length; m++)
+                    {
+                        if(adparts[m].indexOf("+") != -1)
+                        {
+                            var plussplits = adparts[m].split("+");
+                            adparts[m] = parseFloat(plussplits[0]) + parseFloat(plussplits[1]*k);
+                        }
+                        newline += adparts[m] + " ";
+                    }
+
+
+
+                    adjusted.push(newline);
+                }
+                allines.splice.apply(allines,[i, 0].concat(adjusted));
+            }
+            // console.log(allines);
+        }
+    }
+    return allines;
+}
+
+
+
+function makeBullet(scriptname)
+{
+    var bullet = new Bullet();
+    var codebase = code[String(scriptname)];
+    // console.log(codebase);
+    var allines = codebase.split("\n");
+    // console.log(allines);
+
+    allines = loopcreation(allines);
 
     delayedcall(allines,bullet,0);
+
+
+
+    return bullet;
 }
 
 function delayedcall(allines,bullet,index)
@@ -95,9 +177,9 @@ function delayedcall(allines,bullet,index)
     {
         var delay = executeline(allines[index],bullet);
 
-        scene.tl.delay(delay).then(function(){
+        bullet.tl.delay(delay).then(function(){
            // Processing after one second
-           console.log("lel");
+           // console.log("lel");
            delayedcall(allines,bullet,index+1)
        });
     }
@@ -154,6 +236,14 @@ function executeline(line,bullet)
                 bullet.y += parts[2];
             }
         }
+        if(parts[0] == "make")
+        {
+            var newbullet = makeBullet(parts[1]);
+            newbullet.x = bullet.x;
+            newbullet.y = bullet.y;
+            newbullet.speed = parts[2];
+            newbullet.angle = parts[3];
+        }
 
         return delay;
 }
@@ -169,20 +259,66 @@ Array.prototype.clean = function(deleteValue) {
 };
 
 
+function startup()
+{
+    code = JSON.parse(readCookie("code"));
+    for(var key in code)
+    {
+        $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
+    }
+
+    load("main");
+}
+
+
 
 function save()
 {
-    code = editor.getSession().getDocument().getValue();
-    console.log("value is " + code);
+    var filename = $("#filename").val();
+    // conso
+    code[filename] = editor.getSession().getDocument().getValue();
+
+    var json = JSON.stringify(code);
+
+    $("#loading").html("");
+
+    for(var key in code)
+    {
+        $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
+    }
+    createCookie("code",json,7);
 }
 
-function load()
+function load(filename)
 {
-    console.log(code);
-    editor.getSession().getDocument().setValue(code);
+    editor.getSession().getDocument().setValue(code[filename]);
+    $("#filename").val(filename);
+    // refresh();
 }
 
+function createCookie(name,value,days) {
+        var date = new Date();
+        date.setTime(date.getTime()+(days*24*60*60*1000));
+        var expires = "; expires="+date.toGMTString();
 
+    document.cookie = name+"="+value+expires+"; path=/";
+    // console.log(readCookie(name));
+}
+
+function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
+function eraseCookie(name) {
+    createCookie(name,"",-1);
+}
 
 
 
