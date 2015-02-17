@@ -40,6 +40,17 @@ window.onload = function(){
 
     };
 
+    Player = Class.create(Sprite, { // declare a custom class called Bear
+        initialize:function(){ // initialize the class (constructor)
+            Sprite.call(this,32,32); // initialize the sprite
+            this.image = game.assets['images/default.png'];
+            scene.addChild(this);
+        },
+        onenterframe:function()
+        { // enterframe event listener
+        }
+    });
+
     Bullet = Class.create(Sprite, { // declare a custom class called Bear
         initialize:function(){ // initialize the class (constructor)
             Sprite.call(this,32,32); // initialize the sprite
