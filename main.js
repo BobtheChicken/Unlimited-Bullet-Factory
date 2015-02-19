@@ -18,9 +18,11 @@ var allbullets = [];
 
 var code = {};
 
+var oktoclose = false;
+
 window.onload = function(){
 
-    game = new Game(1024, 1024);
+    game = new Game(2048, 1256);
     game.fps = 30;
     game.scale = 0.5;
     game.preload('images/default.png');
@@ -99,6 +101,15 @@ function refresh()
     boss = makeBullet("main");
     // console.log();
     // start();
+    $("#enchant-stage").css("display","block");
+    $("#enchant-stage").css("position","absolute");
+    oktoclose = false;
+
+    // var timer = new Sprite(32,32);
+    scene.tl.delay(3).then(function(){
+            oktoclose = true;
+            // alert("hi");
+        });
 }
 
 
@@ -334,7 +345,13 @@ function eraseCookie(name) {
 
 
 
-
+$(document).click(function(event) {
+    if(!$(event.target).closest('#gameholder').length) {
+        if(oktoclose) {
+            $("#enchant-stage").css("display","none");
+        }
+    }
+})
 
 
 
