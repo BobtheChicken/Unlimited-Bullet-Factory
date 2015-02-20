@@ -286,7 +286,7 @@ function startup()
     code = JSON.parse(readCookie("code"));
     for(var key in code)
     {
-        $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
+        $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
     }
 
     load("main");
@@ -302,11 +302,13 @@ function save()
 
     var json = JSON.stringify(code);
 
-    $("#loading").html("");
+    // $("#loading").html("");
 
     for(var key in code)
     {
-        $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
+        // $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
+        $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        //
     }
     createCookie("code",json,7);
 }
