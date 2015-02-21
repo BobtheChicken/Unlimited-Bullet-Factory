@@ -62,8 +62,8 @@ window.onload = function(){
             this.scaleX = 1;
             this.scaleY = 1;
 
-            this.x = 512;
-            this.y = 512;
+            this.x = 1024;
+            this.y = 628;
 
             this.angle = 0;
             this.speed = 1;
@@ -118,14 +118,17 @@ function loopcreation(allines)
     for(var i = 0; i < allines.length; i++)
     {
         var parts = allines[i].split(" ");
+        // console.log(allines[i]);
         if(parts[0] == "loop")
         {
+            // alert("loop done");
             var looped = [];
             var endreached = false;
             var counter = i;
             allines.splice(i,1);
-            while(endreached == false && counter < 10)
+            while(endreached == false && counter < 1000)
             {
+                console.log(allines[counter]);
                 if(allines[counter] == "endloop")
                 {
                     endreached = true;
@@ -169,8 +172,10 @@ function loopcreation(allines)
                 allines.splice.apply(allines,[i, 0].concat(adjusted));
             }
             // console.log(allines);
+
         }
     }
+
     return allines;
 }
 
@@ -228,11 +233,11 @@ function executeline(line,bullet)
             }
             if(parts[1] == "x")
             {
-                bullet.x = parts[2];
+                bullet.x = parseFloat(parts[2]);
             }
             if(parts[1] == "y")
             {
-                bullet.y = parts[2];
+                bullet.y = parseFloat(parts[2]);
             }
         }
         if(parts[0] == "delay")
@@ -251,11 +256,12 @@ function executeline(line,bullet)
             }
             if(parts[1] == "x")
             {
-                bullet.x += parts[2];
+                bullet.x = parseFloat(parts[2]) + bullet.x;
             }
             if(parts[1] == "y")
             {
-                bullet.y += parts[2];
+                bullet.y = parseFloat(parts[2]) + bullet.y;
+                alert(bullet.y);
             }
         }
         if(parts[0] == "make")
@@ -284,12 +290,26 @@ Array.prototype.clean = function(deleteValue) {
 function startup()
 {
     code = JSON.parse(readCookie("code"));
+    // alert(filename);
+    // alert()
     for(var key in code)
     {
-        $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        if(key == "main")
+        {
+            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+        else
+        {
+            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+
     }
 
-    load("main");
+    // var newbullet = makeBullet("main");
+    // newbullet.x = 1024;
+    // newbullet.y = 628;
+    // newbullet.speed = 0;
+    // newbullet.angle = 0;
 }
 
 
@@ -302,13 +322,46 @@ function save()
 
     var json = JSON.stringify(code);
 
-    // $("#loading").html("");
+    $("#loading").html("");
 
     for(var key in code)
     {
-        // $("#loading").append("<input type='button' id=" + key + " value=" + key+ " onclick=load('" + key + "') />");
-        $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        //
+        if(key == filename)
+        {
+            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+        else
+        {
+            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+    }
+    createCookie("code",json,7);
+}
+
+function deletething()
+{
+    var filename = "main";
+    // conso
+    // code[filename] = editor.getSession().getDocument().getValue();
+    console.log(code);
+    var deleted = $("#filename").val();
+    delete code[deleted];
+    console.log(code);
+
+    var json = JSON.stringify(code);
+
+    $("#loading").html("");
+
+    for(var key in code)
+    {
+        if(key == filename)
+        {
+            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+        else
+        {
+            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
     }
     createCookie("code",json,7);
 }
@@ -317,6 +370,20 @@ function load(filename)
 {
     editor.getSession().getDocument().setValue(code[filename]);
     $("#filename").val(filename);
+
+     $("#loading").html("");
+
+    for(var key in code)
+    {
+        if(key == filename)
+        {
+            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+        else
+        {
+            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
+        }
+    }
     // refresh();
 }
 
