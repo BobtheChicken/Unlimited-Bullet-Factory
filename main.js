@@ -23,9 +23,10 @@ var oktoclose = false;
 window.onload = function(){
 
     game = new Game(2048, 1256);
-    game.fps = 30;
+    game.fps = 60;
     game.scale = 0.5;
     game.preload('images/default.png');
+    game.preload('images/player.png');
     // scene;
 
     game.onload = function()
@@ -36,6 +37,8 @@ window.onload = function(){
 
         startup();
 
+        var player = new Player();
+
         // testbullet = new Bullet("main");
 
         // refresh();
@@ -44,13 +47,28 @@ window.onload = function(){
 
     Player = Class.create(Sprite, { // declare a custom class called Bear
         initialize:function(){ // initialize the class (constructor)
-            Sprite.call(this,32,32); // initialize the sprite
-            this.image = game.assets['images/default.png'];
+            Sprite.call(this,128,128); // initialize the sprite
+            this.image = game.assets['images/player.png'];
             scene.addChild(this);
+            this.moveSpeed = 10;
         },
         onenterframe:function()
         { // enterframe event listener
+            if(game.input.left && !game.input.right)
+            {
+                this.x -= this.moveSpeed;
+            }
+            else if(game.input.right && !game.input.left){
+                this.x += this.moveSpeed;
+            }
+            if(game.input.up && !game.input.down){
+                this.y -= this.moveSpeed;
+            }
+            else if(game.input.down && !game.input.up){
+                this.y += this.moveSpeed;
+            }
         }
+
     });
 
     Bullet = Class.create(Sprite, { // declare a custom class called Bear
@@ -225,11 +243,11 @@ function executeline(line,bullet)
         {
             if(parts[1] == "rotation")
             {
-                bullet.angle = parts[2];
+                bullet.angle = parseFloat(parts[2]);
             }
             if(parts[1] == "speed")
             {
-                bullet.speed = parts[2];
+                bullet.speed = parseFloat(parts[2]);
             }
             if(parts[1] == "x")
             {
@@ -248,20 +266,20 @@ function executeline(line,bullet)
         {
             if(parts[1] == "rotation")
             {
-                bullet.angle += parts[2];
+                bullet.angle = parseFloat(parts[2]) + parseFloat(bullet.angle);
             }
             if(parts[1] == "speed")
             {
-                bullet.speed += parts[2];
+                bullet.speed = parseFloat(parts[2]) + parseFloat(bullet.speed);
+                // alert(bullet.speed);
             }
             if(parts[1] == "x")
             {
-                bullet.x = parseFloat(parts[2]) + bullet.x;
+                bullet.x = parseFloat(parts[2]) + parseFloat(bullet.x);
             }
             if(parts[1] == "y")
             {
-                bullet.y = parseFloat(parts[2]) + bullet.y;
-                alert(bullet.y);
+                bullet.y = parseFloat(parts[2]) + parseFloat(bullet.y);
             }
         }
         if(parts[0] == "make")
@@ -271,6 +289,27 @@ function executeline(line,bullet)
             newbullet.y = bullet.y;
             newbullet.speed = parts[2];
             newbullet.angle = parts[3];
+        }
+        if(parts[0] == "destroy")
+        {
+            $.each(allbullets, function(i){
+                if(allbullets[i] == bullet) {
+                    allbullets.splice(i,1);
+                    return false;
+                }
+            });
+            scene.removeChild(bullet);
+        }
+        if(parts[0] == "clear")
+        {
+            console.log("*******" + allbullets.length);
+            // alert("lel");
+            for(var i = 1; i < allbullets.length; i++)
+            {
+                console.log("*******");
+                scene.removeChild(allbullets[i]);
+            }
+
         }
 
         return delay;
@@ -422,6 +461,13 @@ $(document).click(function(event) {
     }
 })
 
+window.top.document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    var keyCode = evt.keyCode;
+    if (keyCode >= 37 && keyCode <= 40) {
+        return false;
+    }
+};
 
 
 
