@@ -7,14 +7,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script type="text/javascript" src="build/enchant.js"></script>
     <script src="jquery-1.10.2.min.js"></script>
+    <script src="tree.jquery.js"></script>
+    <link rel="stylesheet" href="jqtree.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <script type="text/javascript" src="main.js"></script>
 
     <style type="text/css">
-        body {
+/*        body {
             margin: 0;
             padding: 0;
-        }
+        }*/
 
         #enchant-stage {
             text-align: center;
@@ -46,18 +48,20 @@
 </center>
 
     <div class="row">
-        <div class="col-md-12">
-            <ul class="nav nav-tabs" id="loading">
-            </ul>
+        <div class='col-md-12'>
+            <h2 style="margin-left: 20px" id="title">edit/ unlimited bullet festival/ main</h2>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-9">
             <div id="editor" style="height: 512px; width: 100%">set speed 10</div>
         </div>
+        <div class="col-md-3">
+            <div id="tree" data-url="/treedasta/" style="height: 512px; width: 100%"></div>
+        </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-9">
             <button type="button" onclick="refresh()">Refresh</button>
             <button type="button" onclick="save()">Save</button>
             <input id="filename">

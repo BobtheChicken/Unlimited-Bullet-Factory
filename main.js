@@ -13,19 +13,26 @@ enchant();
 var boss;
 var game;
 var scene;
+var player;
 
 var allbullets = [];
+
+var keysdown = {
+    shift: false
+};
 
 var code = {};
 
 var oktoclose = false;
+
+var projectname = "unlimited bullet festival";
 
 window.onload = function(){
 
     game = new Game(2048, 1256);
     game.fps = 60;
     game.scale = 0.5;
-    game.preload('images/default.png');
+    game.preload('images/bigbullet.png');
     game.preload('images/player.png');
     // scene;
 
@@ -37,7 +44,7 @@ window.onload = function(){
 
         startup();
 
-        var player = new Player();
+        player = new Player();
 
         // testbullet = new Bullet("main");
 
@@ -47,13 +54,28 @@ window.onload = function(){
 
     Player = Class.create(Sprite, { // declare a custom class called Bear
         initialize:function(){ // initialize the class (constructor)
-            Sprite.call(this,128,128); // initialize the sprite
+            Sprite.call(this,64,64); // initialize the sprite
             this.image = game.assets['images/player.png'];
             scene.addChild(this);
             this.moveSpeed = 10;
+
+            this.originX = 0.5;
+            this.originY = 0.5;
+
+            this.x = 1024;
+            this.y = 1000;
         },
         onenterframe:function()
         { // enterframe event listener
+
+            if(keysdown.shift)
+            {
+                this.moveSpeed = 3;
+            }
+            else
+            {
+                this.moveSpeed = 10;
+            }
             if(game.input.left && !game.input.right)
             {
                 this.x -= this.moveSpeed;
@@ -73,12 +95,14 @@ window.onload = function(){
 
     Bullet = Class.create(Sprite, { // declare a custom class called Bear
         initialize:function(){ // initialize the class (constructor)
-            Sprite.call(this,32,32); // initialize the sprite
-            this.image = game.assets['images/default.png'];
+            Sprite.call(this,64,64); // initialize the sprite
+            this.image = game.assets['images/bigbullet.png'];
             scene.addChild(this);
 
             this.scaleX = 1;
             this.scaleY = 1;
+
+            this.radius = 20;
 
             this.x = 1024;
             this.y = 628;
@@ -101,6 +125,12 @@ window.onload = function(){
 
             this.x += vectorx;
             this.y += vectory;
+
+            if(this.within(player, this.radius + 10))
+            {
+                allbullets.splice(allbullets.indexOf(this),1);
+                scene.removeChild(this);
+            }
             // console.log(vectorx + " " + vectory);
         }
     });
@@ -329,21 +359,60 @@ Array.prototype.clean = function(deleteValue) {
 function startup()
 {
     code = JSON.parse(readCookie("code"));
+    if(code == null)
+    {
+        code = {};
+    }
     // alert(filename);
     // alert()
-    for(var key in code)
-    {
-        if(key == "main")
-        {
-            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-        else
-        {
-            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
 
+
+    var data = JSON.parse(readCookie("tree"));
+
+    // if(true)
+    // {
+        // data = [
+        // {
+        //     label: 'node1',
+        //     children: [
+        //         { label: 'chilasdsad1' },
+        //         { label: 'child2' }
+        //     ]
+        // },
+        // {
+        //     label: 'node2',
+        //     children: [
+        //         { label: 'child3' }
+        //     ]
+        // }
+        // ];
+    // }
+    if(data == null)
+    {
+        data = [{label: 'main'}];
     }
 
+    $(function() {
+        $('#tree').tree({
+            data: data,
+            dragAndDrop: true,
+            autoOpen: 0
+        });
+    });
+
+    var json = $('#tree').tree('toJson');
+    createCookie("tree",json,9999);
+
+    $('#tree').bind(
+    'tree.click',
+    function(event) {
+        // The clicked node is 'event.node'
+        var node = event.node;
+        load(node.name);
+        }
+    );
+
+load("main");
     // var newbullet = makeBullet("main");
     // newbullet.x = 1024;
     // newbullet.y = 628;
@@ -361,20 +430,21 @@ function save()
 
     var json = JSON.stringify(code);
 
-    $("#loading").html("");
-
-    for(var key in code)
+    // $("#loading").html("");
+    if($("#tree").tree('getNodeById',filename) == null)
     {
-        if(key == filename)
-        {
-            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-        else
-        {
-            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
+        $("#tree").tree(
+        'appendNode',
+            {
+                label: filename,
+                id: filename
+            }
+        );
     }
-    createCookie("code",json,7);
+    createCookie("code",json,9999);
+
+    var json = $('#tree').tree('toJson');
+    createCookie("tree",json,9999);
 }
 
 function deletething()
@@ -389,20 +459,12 @@ function deletething()
 
     var json = JSON.stringify(code);
 
-    $("#loading").html("");
+    // $("#loading").html("");
 
-    for(var key in code)
-    {
-        if(key == filename)
-        {
-            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-        else
-        {
-            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-    }
-    createCookie("code",json,7);
+    createCookie("code",json,9999);
+
+    var json = $('#tree').tree('toJson');
+    createCookie("tree",json,9999);
 }
 
 function load(filename)
@@ -410,19 +472,10 @@ function load(filename)
     editor.getSession().getDocument().setValue(code[filename]);
     $("#filename").val(filename);
 
-     $("#loading").html("");
+    $("#title").html("edit/ " + projectname + "/ " + filename);
 
-    for(var key in code)
-    {
-        if(key == filename)
-        {
-            $("#loading").append("<li role='presentation' class='active'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-        else
-        {
-            $("#loading").append("<li role='presentation'><a onclick=load('" + key + "')>" + key + "</a></li>");
-        }
-    }
+     // $("#loading").html("");
+
     // refresh();
 }
 
@@ -472,7 +525,17 @@ window.top.document.onkeydown = function(evt) {
 
 
 
+$(document).keydown(function (evt) {
+    if (evt.which == 16) {
+        keysdown.shift = true;
+    }
+});
 
+$(document).keyup(function (evt) {
+    if (evt.which == 16) {
+        keysdown.shift = false;
+    }
+});
 
 
 
