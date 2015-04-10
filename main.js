@@ -14,6 +14,8 @@ var boss;
 var game;
 var scene;
 var player;
+var background;
+var redflash;
 
 var allbullets = [];
 
@@ -25,7 +27,11 @@ var code = {};
 
 var oktoclose = false;
 
-var projectname = "unlimited bullet festival";
+var projectname = "touhou";
+
+
+
+
 
 window.onload = function(){
 
@@ -33,7 +39,11 @@ window.onload = function(){
     game.fps = 60;
     game.scale = 0.5;
     game.preload('images/bigbullet.png');
+    game.preload('images/leaf.png');
     game.preload('images/player.png');
+    game.preload('images/collider.png');
+    game.preload('images/forestbg.jpg');
+    game.preload('images/redpixel.png');
     // scene;
 
     game.onload = function()
@@ -43,6 +53,41 @@ window.onload = function(){
         game.pushScene(scene);
 
         startup();
+
+
+
+        background = new Sprite(1920,1080);
+        background.image = game.assets['images/forestbg.jpg'];
+        background.x = 0;
+        background.y = 0;
+        background.scaleX = 10;
+        background.scaleY = 10;
+        background.onenterframe = function()
+        {
+            this.y --;
+        }
+        scene.addChild(background);
+
+        redflash = new Sprite(1,1);
+        redflash.image = game.assets['images/redpixel.png'];
+        redflash.x = 1024;
+        redflash.y = 628;
+        redflash.scaleX = 2048;
+        redflash.scaleY = 1256;
+        redflash.opacity = 0;
+        redflash.onenterframe = function()
+        {
+            if(this.opacity > 0)
+            {
+                this.opacity -= 1/10;
+            }
+            if(this.opacity < 0)
+            {
+                this.opacity = 0;
+            }
+            // background.y --;
+        }
+        scene.addChild(redflash);
 
         player = new Player();
 
@@ -64,6 +109,13 @@ window.onload = function(){
 
             this.x = 1024;
             this.y = 1000;
+
+
+            this.collider = new Sprite(1,1);
+            scene.addChild(this.collider);
+            this.collider.x = 0;
+            this.collider.y = 0;
+
         },
         onenterframe:function()
         { // enterframe event listener
@@ -89,6 +141,10 @@ window.onload = function(){
             else if(game.input.down && !game.input.up){
                 this.y += this.moveSpeed;
             }
+
+
+            this.collider.x = this.x + 32;
+            this.collider.y = this.y + 32;
         }
 
     });
@@ -126,10 +182,23 @@ window.onload = function(){
             this.x += vectorx;
             this.y += vectory;
 
-            if(this.within(player, this.radius + 10))
+            if(this.within(player.collider, this.radius + 10))
             {
                 allbullets.splice(allbullets.indexOf(this),1);
                 scene.removeChild(this);
+                redflash.opacity = 1;
+            }
+
+            this.rotation = this.angle;
+
+            if(this.scaleup)
+            {
+                this.scaleX = this.scaleupfactor;
+                this.scaleY = this.scaleupfactor;
+                if(this.scaleupfactor < 1)
+                {
+                    this.scaleupfactor += 1/60;
+                }
             }
             // console.log(vectorx + " " + vectory);
         }
@@ -141,6 +210,7 @@ window.onload = function(){
 
 function refresh()
 {
+    background.y = 0;
     for(var i = 0; i < allbullets.length; i++)
     {
         scene.removeChild(allbullets[i]);
@@ -174,6 +244,7 @@ function loopcreation(allines)
             var endreached = false;
             var counter = i;
             allines.splice(i,1);
+            i--;
             while(endreached == false && counter < 1000)
             {
                 console.log(allines[counter]);
@@ -192,7 +263,7 @@ function loopcreation(allines)
                 counter++;
             }
             // console.log(looped);
-            for(var k = 0; k < parts[1]; k++)
+            for(var k = 0; k < parseFloat(parts[1])+1; k++)
             {
                 var adjusted = [];
                 for(var j = 0; j < looped.length; j++)
@@ -215,11 +286,40 @@ function loopcreation(allines)
 
 
 
-                    adjusted.push(newline);
+
+                    for(var m = 0; m < adparts.length; m++)
+                    {
+                        if(adparts[m] == "")
+                        {
+                            // m--;
+                            adparts.splice(m,1);
+                            m--;
+                        }
+                    }
+
+                    console.log(adparts);
+
+                    if(adparts[0] == "every")
+                    {
+                        if(k % parseFloat(adparts[1]) == 0)
+                        {
+                            var noeveryline = "";
+                            for(var m = 2; m < adparts.length; m++)
+                            {
+                                noeveryline += adparts[m] + " ";
+                            }
+                            adjusted.push(noeveryline);
+                            console.log("alsndiosdn");
+                        }
+                    }
+                    else
+                    {
+                        adjusted.push(newline);
+                    }
                 }
                 allines.splice.apply(allines,[i, 0].concat(adjusted));
             }
-            // console.log(allines);
+            console.log(allines);
 
         }
     }
@@ -287,10 +387,20 @@ function executeline(line,bullet)
             {
                 bullet.y = parseFloat(parts[2]);
             }
+            if(parts[1] == "scale")
+            {
+                bullet.scaleY = parseFloat(parts[2]);
+                bullet.scaleX = parseFloat(parts[2]);
+            }
+            if(parts[1] == "radius")
+            {
+                bullet.radius = parseFloat(parts[2]);
+            }
         }
         if(parts[0] == "delay")
         {
-            delay = parts[1];
+            delay = parseFloat(parts[1])+1;
+            // console.log(delay);
         }
         if(parts[0] == "add")
         {
@@ -341,6 +451,20 @@ function executeline(line,bullet)
             }
 
         }
+        if(parts[0] == "effect")
+        {
+            if(parts[1] == "scaleup")
+            {
+                bullet.scaleup = true;
+                bullet.scaleupfactor = 0;
+                bullet.scaleX = 0;
+                bullet.scaleY = 0;
+            }
+        }
+        if(parts[0] == "sprite")
+        {
+            bullet.image = game.assets["images/"+parts[1]+".png"];
+        }
 
         return delay;
 }
@@ -366,8 +490,9 @@ function startup()
     // alert(filename);
     // alert()
 
-
+    console.log(projectname);
     var data = JSON.parse(readCookie("tree"));
+    console.log(readCookie("tree"));
 
     // if(true)
     // {
@@ -400,8 +525,12 @@ function startup()
         });
     });
 
-    var json = $('#tree').tree('toJson');
-    createCookie("tree",json,9999);
+    // $('#tree').tree('reload');
+
+    $('#tree').tree('loadData', data);
+
+    // var json = $('#tree').tree('toJson');
+    // createCookie("tree",json,9999);
 
     $('#tree').bind(
     'tree.click',
@@ -467,8 +596,44 @@ function deletething()
     createCookie("tree",json,9999);
 }
 
+function newthing()
+{
+    var filename = $("#filename").val();
+    // conso
+    code[filename] = "";
+
+    editor.getSession().getDocument().setValue("");
+
+    var json = JSON.stringify(code);
+
+    // $("#loading").html("");
+    if($("#tree").tree('getNodeById',filename) == null)
+    {
+        $("#tree").tree(
+        'appendNode',
+            {
+                label: filename,
+                id: filename
+            }
+        );
+    }
+    createCookie("code",json,9999);
+
+    var json = $('#tree').tree('toJson');
+    createCookie("tree",json,9999);
+}
+
+function loadproject()
+{
+    var filename = $("#projectname").val();
+    projectname = filename;
+
+    startup();
+}
+
 function load(filename)
 {
+    editor.$blockScrolling = Infinity
     editor.getSession().getDocument().setValue(code[filename]);
     $("#filename").val(filename);
 
@@ -484,12 +649,12 @@ function createCookie(name,value,days) {
         date.setTime(date.getTime()+(days*24*60*60*1000));
         var expires = "; expires="+date.toGMTString();
 
-    document.cookie = name+"="+value+expires+"; path=/";
+    document.cookie = projectname+name+"="+value+expires+"; path=/";
     // console.log(readCookie(name));
 }
 
 function readCookie(name) {
-    var nameEQ = name + "=";
+    var nameEQ = projectname+name + "=";
     var ca = document.cookie.split(';');
     for(var i=0;i < ca.length;i++) {
         var c = ca[i];
@@ -500,7 +665,7 @@ function readCookie(name) {
 }
 
 function eraseCookie(name) {
-    createCookie(name,"",-1);
+    createCookie(projectname+name,"",-1);
 }
 
 
