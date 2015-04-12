@@ -276,12 +276,24 @@ function loopcreation(allines)
 
                     for(var m = 0; m < adparts.length; m++)
                     {
-                        if(adparts[m].indexOf("+") != -1)
+                        if(adparts[m][0] != "c")
                         {
-                            var plussplits = adparts[m].split("+");
-                            adparts[m] = parseFloat(plussplits[0]) + parseFloat(plussplits[1]*k);
+                            if(adparts[m].indexOf("+") != -1)
+                            {
+                                var plussplits = adparts[m].split("+");
+                                adparts[m] = parseFloat(plussplits[0]) + parseFloat(plussplits[1]*k);
+                            }
+                            newline += adparts[m] + " ";
                         }
-                        newline += adparts[m] + " ";
+                        else
+                        {
+                            if(adparts[m].indexOf("+") != -1)
+                            {
+                                var plussplits = adparts[m].split("+");
+                                adparts[m] = parseFloat(plussplits[0].substring(1,plussplits[0].length)) + parseFloat(plussplits[1]*k);
+                            }
+                            newline += "c"+adparts[m] + " ";
+                        }
                     }
 
 
@@ -428,6 +440,15 @@ function executeline(line,bullet)
             newbullet.x = bullet.x;
             newbullet.y = bullet.y;
             newbullet.speed = parts[2];
+            // console.log(parts[3]);
+            // parts[3].clean("");
+            if(parts[3][0] == "c")
+            {
+
+                parts[3] = parseFloat(parts[3].substring(1,parts[3].length))+parseFloat(bullet.angle);
+                console.log(parts[3]);
+
+            }
             newbullet.angle = parts[3];
         }
         if(parts[0] == "destroy")
