@@ -158,6 +158,8 @@ window.onload = function(){
             this.scaleX = 1;
             this.scaleY = 1;
 
+            this.hasscript = false;
+
             this.radius = 20;
 
             this.x = 1024;
@@ -166,8 +168,14 @@ window.onload = function(){
             this.angle = 0;
             this.speed = 1;
 
+            this.flags = {
+                "leavescreen": false
+            }
+
             this.scriptname = "regular";
             allbullets.push(this);
+
+            this.haslogged = true;
 
 
         },
@@ -189,7 +197,28 @@ window.onload = function(){
                 redflash.opacity = 1;
             }
 
+            if(this.flags["leavescreen"] == false && this.hasscript)
+            {
+                // console.log("safe");
+                if(this.x < 0 || this.x > 2048 || this.y < 0 || this.y > 1256)
+                {
+                    allbullets.splice(allbullets.indexOf(this),1);
+                    scene.removeChild(this);
+                }
+            }
+
+            if(this.x < 0 || this.x > 2048 || this.y < 0 || this.y > 1256)
+                {
+                    if(this.haslogged)
+                    {
+                        // console.log(this.flags);
+                        this.haslogged = false;
+                    }
+                }
+
             this.rotation = this.angle;
+
+
 
             if(this.scaleup)
             {
@@ -215,6 +244,9 @@ function refresh()
     {
         scene.removeChild(allbullets[i]);
     }
+
+    allbullets = [];
+
     scene.removeChild(boss);
     boss = makeBullet("main");
     // console.log();
@@ -233,6 +265,9 @@ function refresh()
 
 function loopcreation(allines)
 {
+
+    allines.splice(0,0,"");
+
     for(var i = 0; i < allines.length; i++)
     {
         var parts = allines[i].split(" ");
@@ -244,10 +279,10 @@ function loopcreation(allines)
             var endreached = false;
             var counter = i;
             allines.splice(i,1);
-            i--;
-            while(endreached == false && counter < 1000)
+            // i--;
+            while(endreached == false)
             {
-                console.log(allines[counter]);
+                // console.log(allines[counter]);
                 if(allines[counter] == "endloop")
                 {
                     endreached = true;
@@ -262,6 +297,8 @@ function loopcreation(allines)
 
                 counter++;
             }
+
+            // console.log("after splicing" + allines);
             // console.log(looped);
             for(var k = 0; k < parseFloat(parts[1])+1; k++)
             {
@@ -283,7 +320,9 @@ function loopcreation(allines)
                                 var plussplits = adparts[m].split("+");
                                 adparts[m] = parseFloat(plussplits[0]) + parseFloat(plussplits[1]*k);
                             }
+
                             newline += adparts[m] + " ";
+
                         }
                         else
                         {
@@ -291,25 +330,32 @@ function loopcreation(allines)
                             {
                                 var plussplits = adparts[m].split("+");
                                 adparts[m] = parseFloat(plussplits[0].substring(1,plussplits[0].length)) + parseFloat(plussplits[1]*k);
+                                adparts[m] = "c"+adparts[m];
                             }
-                            newline += "c"+adparts[m] + " ";
+                            newline += adparts[m] + " ";
                         }
                     }
 
+                    // console.log("newline is" + adparts);
 
 
 
+                    // console.log("before " + adparts);
+                    var count = 0;
                     for(var m = 0; m < adparts.length; m++)
                     {
-                        if(adparts[m] == "")
+                        if(adparts[m] === "")
                         {
                             // m--;
                             adparts.splice(m,1);
                             m--;
+                            count++
                         }
                     }
+                    // adparts.clean("");
+                    // console.log("after " + adparts + " count " + count);
 
-                    console.log(adparts);
+                    // console.log(adparts);
 
                     if(adparts[0] == "every")
                     {
@@ -321,7 +367,7 @@ function loopcreation(allines)
                                 noeveryline += adparts[m] + " ";
                             }
                             adjusted.push(noeveryline);
-                            console.log("alsndiosdn");
+                            // console.log(noeveryline + " adparts " + adparts);
                         }
                     }
                     else
@@ -329,6 +375,7 @@ function loopcreation(allines)
                         adjusted.push(newline);
                     }
                 }
+                // console.log("i is " + i);
                 allines.splice.apply(allines,[i, 0].concat(adjusted));
             }
             console.log(allines);
@@ -375,6 +422,8 @@ function delayedcall(allines,bullet,index)
 
 function executeline(line,bullet)
 {
+
+
     // var line = allines[i];
         var parts = line.split(" ");
         parts.clean("");
@@ -440,13 +489,18 @@ function executeline(line,bullet)
             newbullet.x = bullet.x;
             newbullet.y = bullet.y;
             newbullet.speed = parts[2];
-            // console.log(parts[3]);
+
+
+            if(parts.length < 4)
+            {
+                console.log(parts);
+            }
             // parts[3].clean("");
             if(parts[3][0] == "c")
             {
 
                 parts[3] = parseFloat(parts[3].substring(1,parts[3].length))+parseFloat(bullet.angle);
-                console.log(parts[3]);
+                console.log(parts[3] + " " + bullet.angle);
 
             }
             newbullet.angle = parts[3];
@@ -486,6 +540,13 @@ function executeline(line,bullet)
         {
             bullet.image = game.assets["images/"+parts[1]+".png"];
         }
+        if(parts[0] == "flag")
+        {
+            bullet.flags[parts[1]] = parts[2].bool();
+            console.log(bullet.flags);
+        }
+
+        bullet.hasscript = true;
 
         return delay;
 }
@@ -498,6 +559,10 @@ Array.prototype.clean = function(deleteValue) {
     }
   }
   return this;
+};
+
+String.prototype.bool = function() {
+    return (/^true$/i).test(this);
 };
 
 
@@ -613,7 +678,13 @@ function deletething()
 
     createCookie("code",json,9999);
 
+    var node = $('#tree').tree('getNodeById', deleted);
+
+    $('#tree').tree('removeNode', node);
+
     var json = $('#tree').tree('toJson');
+
+
     createCookie("tree",json,9999);
 }
 
