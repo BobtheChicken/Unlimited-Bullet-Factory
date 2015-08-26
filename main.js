@@ -392,6 +392,11 @@ function makeBullet(scriptname)
 {
     var bullet = new Bullet();
     var codebase = code[String(scriptname)];
+
+    if(codebase == null)
+    {
+        codebase = "";
+    }
     // console.log(codebase);
     var allines = codebase.split("\n");
     // console.log(allines);
@@ -458,12 +463,12 @@ function executeline(line,bullet)
                 bullet.radius = parseFloat(parts[2]);
             }
         }
-        if(parts[0] == "delay")
+        else if(parts[0] == "delay")
         {
             delay = parseFloat(parts[1])+1;
             // console.log(delay);
         }
-        if(parts[0] == "add")
+        else if(parts[0] == "add")
         {
             if(parts[1] == "rotation")
             {
@@ -483,7 +488,7 @@ function executeline(line,bullet)
                 bullet.y = parseFloat(parts[2]) + parseFloat(bullet.y);
             }
         }
-        if(parts[0] == "make")
+        else if(parts[0] == "make")
         {
             var newbullet = makeBullet(parts[1]);
             newbullet.x = bullet.x;
@@ -505,7 +510,7 @@ function executeline(line,bullet)
             }
             newbullet.angle = parts[3];
         }
-        if(parts[0] == "destroy")
+        else if(parts[0] == "destroy")
         {
             $.each(allbullets, function(i){
                 if(allbullets[i] == bullet) {
@@ -515,7 +520,7 @@ function executeline(line,bullet)
             });
             scene.removeChild(bullet);
         }
-        if(parts[0] == "clear")
+        else if(parts[0] == "clear")
         {
             console.log("*******" + allbullets.length);
             // alert("lel");
@@ -526,7 +531,7 @@ function executeline(line,bullet)
             }
 
         }
-        if(parts[0] == "effect")
+        else if(parts[0] == "effect")
         {
             if(parts[1] == "scaleup")
             {
@@ -536,14 +541,18 @@ function executeline(line,bullet)
                 bullet.scaleY = 0;
             }
         }
-        if(parts[0] == "sprite")
+        else if(parts[0] == "sprite")
         {
             bullet.image = game.assets["images/"+parts[1]+".png"];
         }
-        if(parts[0] == "flag")
+        else if(parts[0] == "flag")
         {
             bullet.flags[parts[1]] = parts[2].bool();
             console.log(bullet.flags);
+        }
+        else
+        {
+            log("no command called '"+line+"'");
         }
 
         bullet.hasscript = true;
@@ -578,7 +587,7 @@ function startup()
 
     console.log(projectname);
     var data = JSON.parse(readCookie("tree"));
-    console.log(readCookie("tree"));
+    // console.log(readCookie("tree"));
 
     // if(true)
     // {
@@ -761,6 +770,10 @@ function eraseCookie(name) {
 }
 
 
+function log(string)
+{
+    $("#error").html(string);
+}
 
 
 $(document).click(function(event) {
